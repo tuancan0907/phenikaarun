@@ -264,8 +264,8 @@
       if (!swReg || !('Notification' in window) || Notification.permission !== 'granted') return;
       const loc = LOCATIONS[document.getElementById('locationSelect').value];
       try {
-        await swReg.showNotification(formatTime(timeRemaining) + '  ⏳ Đang chạy', {
-          body: `${loc.name} • ${currentLaps} vòng • ${((loc.distance * currentLaps) / 1000).toFixed(2)} km`,
+        await swReg.showNotification(formatTime(timeRemaining), {
+          body: '',
           tag: 'run-timer',        // cùng tag => cập nhật thay vì tạo mới
           renotify: false,
           silent: true,
@@ -273,8 +273,8 @@
           icon: 'icon-192.png',
           badge: 'icon-192.png',
           actions: [
-            { action: 'pause', title: isRunning ? '⏸ Tạm dừng' : '▶ Tiếp tục' },
-            { action: 'reset', title: '✕ Đặt lại' }
+            { action: 'pause', title: isRunning ? '⏸' : '▶' },
+            { action: 'reset', title: '✕' }
           ]
         });
       } catch (e) { /* bỏ qua */ }
