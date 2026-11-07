@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Hỗ Trợ Chạy Cho Sinh Viên Phenikaa</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Phenikaa Run">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 relative">
+    
+    <!-- BANNER KHUYẾN KHÍCH THÊM VÀO MÀN HÌNH CHÍNH -->
+    <div id="pwaInstallBanner" class="mb-5 bg-gradient-to-r from-emerald-600 to-teal-600 p-3.5 rounded-xl flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl">📲</span>
+        <div>
+          <div class="text-xs font-extrabold text-white">Cài đặt ứng dụng</div>
+          <div class="text-[11px] text-emerald-100">Thêm vào màn hình chính để dùng nhanh</div>
+        </div>
+      </div>
+      <button onclick="showInstallGuide()" class="bg-white text-slate-900 font-bold text-xs px-3 py-2 rounded-lg shadow active:scale-95 transition">
+        Cách thêm
+      </button>
+    </div>
+
+    <!-- Tiêu đề -->
+    <h1 class="text-2xl font-bold text-center text-emerald-400 mb-6">🏃 App Hỗ Trợ Chạy Cho Sinh Viên Phenikaa</h1>
+
+    <!-- Chọn Khu Vực -->
+    <div class="mb-5">
+      <label class="block text-sm font-medium mb-2 text-slate-300">Chọn khu vực chạy:</label>
+      <select id="locationSelect" class="w-full bg-slate-700 border border-slate-600 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" onchange="updateLocationInfo()">
+        <option value="nhathidau">Nhà thi đấu</option>
+        <option value="kitucxa">Kí túc xá</option>
+      </select>
+    </div>
+
+    <!-- Chọn Số Vòng (Bộ nút Tăng / Giảm) -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium mb-2 text-slate-300">Số vòng chạy hôm nay:</label>
+      <div class="flex items-center gap-3">
+        <button id="minusBtn" onclick="changeLap(-1)" class="w-14 h-14 bg-slate-700 hover:bg-slate-600 active:scale-95 disabled:opacity-40 disabled:hover:bg-slate-700 rounded-xl font-extrabold text-2xl text-slate-200 transition flex items-center justify-center border border-slate-600">
+          −
+        </button>
+        
+        <div class="flex-1 bg-slate-900 border border-slate-700 rounded-xl h-14 flex items-center justify-center">
+          <span id="lapDisplay" class="text-2xl font-bold text-emerald-400 font-mono">4</span>
+          <span class="text-slate-400 text-sm ml-1 font-normal">vòng</span>
+        </div>
+
+        <button id="plusBtn" onclick="changeLap(1)" class="w-14 h-14 bg-slate-700 hover:bg-slate-600 active:scale-95 rounded-xl font-extrabold text-2xl text-slate-200 transition flex items-center justify-center border border-slate-600">
+          +
+        </button>
+      </div>
+      <p id="minLapWarning" class="text-xs text-slate-400 mt-2 text-center"></p>
+    </div>
+
+    <!-- Hiển Thị Đếm Ngược & Số KM Ghi Nhận -->
+    <div class="bg-slate-900 rounded-xl p-6 text-center border border-slate-700 mb-6">
+      <div class="text-xs text-slate-400 mb-1 uppercase tracking-wider">TỔNG THỜI GIAN ĐẾM NGƯỢC</div>
+      <div class="text-5xl font-extrabold text-emerald-400 font-mono tracking-tight my-2" id="timerDisplay">09:36</div>
+      
+      <!-- Số KM Được Ghi Nhận -->
+      <div class="text-base font-semibold text-emerald-300 bg-emerald-950/60 border border-emerald-800/50 py-2 px-4 rounded-lg mt-3 inline-block" id="recordedKmDisplay">
+        📍 Quãng đường ghi nhận: 1.12 km
+      </div>
+    </div>
+
+    <!-- Nút Điều Khiển -->
+    <div class="flex gap-3 mb-6">
+      <button id="startBtn" onclick="toggleTimer()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 font-bold py-4 rounded-xl shadow-lg transition active:scale-95 text-center">
+        BẮT ĐẦU CHẠY
+      </button>
+      <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 font-semibold px-5 rounded-xl transition">
+        ĐẶT LẠI
+      </button>
+    </div>
+
+    <!-- Nút Mở Trang Hướng Dẫn ở Dưới Cùng -->
+    <button onclick="openGuideModal()" class="w-full bg-slate-700/60 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition active:scale-95">
+      📖 Hướng dẫn & Quy đổi điểm
+    </button>
+  </div>
+
+  <!-- MODAL HƯỚNG DẪN THÊM VÀO MÀN HÌNH CHÍNH (THỦ CÔNG) -->
+  <div id="installGuideModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+      <div class="text-center mb-4">
+        <h3 class="text-xl font-bold text-emerald-400 mb-2">Cách cài App ra ngoài màn hình</h3>
+        <p class="text-sm text-slate-300">Do giới hạn của trình duyệt, bạn cần thao tác tay 2 bước đơn giản sau:</p>
+      </div>
+      
+      <div class="space-y-4 text-sm text-slate-200">
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+          <strong class="text-emerald-400 text-base block mb-2">🤖 Trên Điện Thoại Android:</strong>
+          1. Nhấn vào <strong>Dấu 3 chấm (⋮)</strong> ở góc trên bên phải màn hình Chrome.<br>
+          2. Chọn dòng <strong>"Thêm vào màn hình chính"</strong> (hoặc Cài đặt ứng dụng).
+        </div>
+        
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+          <strong class="text-emerald-400 text-base block mb-2">🍎 Trên Điện Thoại iPhone:</strong>
+          1. Nhấn vào biểu tượng <strong>Chia sẻ (Share)</strong> ở thanh menu dưới cùng (Safari).<br>
+          2. Kéo lên và chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>.
+        </div>
+      </div>
+      
+      <button onclick="closeInstallGuide()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl mt-6 transition text-center text-lg shadow-lg">
+        Đã hiểu, tôi sẽ tự thêm!
+      </button>
+    </div>
+  </div>
+
+  <!-- TRANG HƯỚNG DẪN & QUY ĐỔI ĐIỂM -->
+  <div id="guideModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md max-h-[90vh] rounded-2xl p-6 overflow-y-auto flex flex-col shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
+        <h2 class="text-lg font-bold text-emerald-400">📖 Quy Định & Quy Đổi Điểm</h2>
+        <button onclick="closeGuideModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">✕</button>
+      </div>
+
+      <div class="space-y-3 mb-6">
+        <h3 class="font-semibold text-white text-sm uppercase tracking-wider text-slate-300">📌 Các Mục Cần Lưu Ý:</h3>
+        <ul class="text-sm space-y-2 text-slate-300">
+          <li class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+            <span>⏰</span>
+            <div><strong>Khung giờ chạy:</strong> Từ 5h–10h và từ 15h–22h hàng ngày.</div>
+          </li>
+          <li class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+            <span>📏</span>
+            <div><strong>Quãng đường tối thiểu:</strong> Mỗi lần chạy tối thiểu 1.0 km (4 vòng Nhà thi đấu hoặc 3 vòng Kí túc xá).</div>
+          </li>
+          <li class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+            <span>⚡</span>
+            <div><strong>Tốc độ quy định:</strong> Tốc độ trung bình bắt buộc &ge; 7 km/h (Pace &le; 8:34 min/km).</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-4">
+        <h3 class="font-semibold text-white text-sm uppercase tracking-wider text-slate-300 mb-3">📊 Bảng Quy Đổi Điểm:</h3>
+        <div class="overflow-x-auto rounded-xl border border-slate-700">
+          <table class="w-full text-xs text-left text-slate-300">
+            <thead class="bg-slate-900 text-emerald-400 font-bold border-b border-slate-700 uppercase">
+              <tr>
+                <th class="p-2.5 text-center">Điểm</th>
+                <th class="p-2.5">Số km (Nam)</th>
+                <th class="p-2.5">Số km (Nữ)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/50 bg-slate-900/40">
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">1đ</td><td class="p-2.5">36km &le; &lt; 39km</td><td class="p-2.5">28km &le; &lt; 31km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">2đ</td><td class="p-2.5">39km &le; &lt; 42km</td><td class="p-2.5">31km &le; &lt; 34km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">3đ</td><td class="p-2.5">42km &le; &lt; 45km</td><td class="p-2.5">34km &le; &lt; 37km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">4đ</td><td class="p-2.5">45km &le; &lt; 48km</td><td class="p-2.5">37km &le; &lt; 40km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">5đ</td><td class="p-2.5">48km &le; &lt; 51km</td><td class="p-2.5">40km &le; &lt; 43km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">6đ</td><td class="p-2.5">51km &le; &lt; 54km</td><td class="p-2.5">43km &le; &lt; 46km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">7đ</td><td class="p-2.5">54km &le; &lt; 57km</td><td class="p-2.5">46km &le; &lt; 49km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">8đ</td><td class="p-2.5">57km &le; &lt; 60km</td><td class="p-2.5">49km &le; &lt; 52km</td></tr>
+              <tr><td class="p-2.5 font-bold text-center text-emerald-400">9đ</td><td class="p-2.5">60km &le; &lt; 63km</td><td class="p-2.5">52km &le; &lt; 55km</td></tr>
+              <tr class="bg-emerald-950/40"><td class="p-2.5 font-extrabold text-center text-emerald-400">10đ</td><td class="p-2.5 font-bold">&ge; 63km</td><td class="p-2.5 font-bold">&ge; 55km</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="text-xs text-center text-slate-400 my-4 italic">
+        ✉️ Mọi thắc mắc liên hệ: <a href="mailto:tuancan09072@gmail.com" class="text-emerald-400 underline font-medium">tuancan09072@gmail.com</a>
+      </p>
+
+      <button onclick="closeGuideModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 font-bold py-3 rounded-xl transition text-center mt-auto">
+        ĐÃ HỂU
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const LOCATIONS = {
+      nhathidau: { name: "Nhà thi đấu", distance: 280, minLaps: 4, secPerLap: 144 },
+      kitucxa: { name: "Kí túc xá", distance: 340, minLaps: 3, secPerLap: 174.8 }
+    };
+
+    let timerId = null;
+    let isRunning = false;
+    let currentLaps = 4;
+    let secPerLap = 144;
+    
+    // CÁC BIẾN CHO THUẬT TOÁN ĐỒNG HỒ THỰC (CHẠY NỀN)
+    let totalSeconds = 576;
+    let timeRemaining = 576; 
+    let targetEndTime = 0; 
+    let lastBeepLap = 0;
+
+    // ẨN BANNER CÀI ĐẶT NẾU ĐÃ MỞ TỪ MÀN HÌNH CHÍNH (Standalone)
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone) {
+      document.getElementById('pwaInstallBanner').style.display = 'none';
+    }
+
+    function showInstallGuide() { document.getElementById('installGuideModal').classList.remove('hidden'); }
+    function closeInstallGuide() { document.getElementById('installGuideModal').classList.add('hidden'); }
+    function openGuideModal() { document.getElementById('guideModal').classList.remove('hidden'); }
+    function closeGuideModal() { document.getElementById('guideModal').classList.add('hidden'); }
+
+    // TẠO FILE ÂM THANH RỖNG (BASE64) ĐỂ ÉP HIỂN THỊ TRÌNH PHÁT NHẠC MÀN HÌNH KHÓA
+    const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+    silentAudio.loop = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playBeep() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain.gain.setValueAtTime(1, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function formatTime(seconds) {
+      if(seconds < 0) seconds = 0;
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // ===== THÔNG BÁO ĐẾM NGƯỢC TRÊN MÀN HÌNH KHÓA / THANH THÔNG BÁO =====
+    let swReg = null;
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then((reg) => { swReg = reg; }).catch(() => {});
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (!e.data || e.data.type !== 'timer-action') return;
+        if (e.data.action === 'pause' && isRunning) toggleTimer();
+        else if (e.data.action === 'pause' && !isRunning) toggleTimer();
+        else if (e.data.action === 'reset') resetTimer();
+      });
+    }
+
+    async function requestNotifPermission() {
+      if (!('Notification' in window)) return false;
+      if (Notification.permission === 'granted') return true;
+      if (Notification.permission === 'denied') return false;
+      return (await Notification.requestPermission()) === 'granted';
+    }
+
+    async function showTimerNotification() {
+      if (!swReg || !('Notification' in window) || Notification.permission !== 'granted') return;
+      const loc = LOCATIONS[document.getElementById('locationSelect').value];
+      try {
+        await swReg.showNotification(formatTime(timeRemaining) + '  ⏳ Đang chạy', {
+          body: `${loc.name} • ${currentLaps} vòng • ${((loc.distance * currentLaps) / 1000).toFixed(2)} km`,
+          tag: 'run-timer',        // cùng tag => cập nhật thay vì tạo mới
+          renotify: false,
+          silent: true,
+          requireInteraction: true, // giữ thông báo, không tự biến mất
+          icon: 'icon-192.png',
+          badge: 'icon-192.png',
+          actions: [
+            { action: 'pause', title: isRunning ? '⏸ Tạm dừng' : '▶ Tiếp tục' },
+            { action: 'reset', title: '✕ Đặt lại' }
+          ]
+        });
+      } catch (e) { /* bỏ qua */ }
+    }
+
+    async function closeTimerNotification() {
+      if (!swReg) return;
+      try {
+        const list = await swReg.getNotifications({ tag: 'run-timer' });
+        list.forEach((n) => n.close());
+      } catch (e) { /* bỏ qua */ }
+    }
+
+    function updateMediaSession() {
+      if ('mediaSession' in navigator) {
+        const locKey = document.getElementById('locationSelect').value;
+        const loc = LOCATIONS[locKey];
+        const timeStr = formatTime(timeRemaining);
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: `Đếm ngược: ${timeStr}`,
+          artist: `Phenikaa Running - ${loc.name}`,
+          album: `Quãng đường: ${((loc.distance * currentLaps) / 1000).toFixed(2)} km`
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => { if (!isRunning) toggleTimer(); });
+        navigator.mediaSession.setActionHandler('pause', () => { if (isRunning) toggleTimer(); });
+      }
+    }
+
+    function updateLocationInfo() {
+      const locKey = document.getElementById('locationSelect').value;
+      const loc = LOCATIONS[locKey];
+      if (currentLaps < loc.minLaps) currentLaps = loc.minLaps;
+      calculateStats();
+    }
+
+    function changeLap(delta) {
+      const locKey = document.getElementById('locationSelect').value;
+      const loc = LOCATIONS[locKey];
+      const newLaps = currentLaps + delta;
+      if (newLaps >= loc.minLaps) {
+        currentLaps = newLaps;
+        calculateStats();
+      }
+    }
+
+    function calculateStats() {
+      const locKey = document.getElementById('locationSelect').value;
+      const loc = LOCATIONS[locKey];
+      
+      secPerLap = loc.secPerLap;
+      totalSeconds = Math.round(currentLaps * secPerLap);
+      const totalDist = (loc.distance * currentLaps) / 1000;
+
+      document.getElementById('lapDisplay').innerText = currentLaps;
+      document.getElementById('minusBtn').disabled = (currentLaps <= loc.minLaps);
+
+      document.getElementById('minLapWarning').innerText = `Tối thiểu ${loc.minLaps} vòng để đạt >1.0km tại ${loc.name}`;
+      document.getElementById('recordedKmDisplay').innerText = `📍 Quãng đường ghi nhận: ${totalDist.toFixed(2)} km`;
+      
+      if (!isRunning) {
+        timeRemaining = totalSeconds;
+        document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
+      }
+    }
+
+    async function toggleTimer() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (isRunning) {
+        // TẠM DỪNG
+        clearInterval(timerId);
+        isRunning = false;
+        showTimerNotification(); // đổi nút thành "Tiếp tục"
+        silentAudio.pause(); // Dừng phát nhạc ngầm
+        document.getElementById('startBtn').innerText = "TIẾP TỤC";
+        document.getElementById('startBtn').className = "flex-1 bg-amber-500 hover:bg-amber-600 font-bold py-4 rounded-xl shadow-lg text-center transition active:scale-95";
+      } else {
+        // BẮT ĐẦU CHẠY
+        isRunning = true;
+        await requestNotifPermission(); // hỏi quyền thông báo lần đầu
+        
+        // Kích hoạt phát âm thanh tàng hình (ÉP hiển thị màn hình khóa)
+        silentAudio.play().catch(e => console.log("Audio play prevented by browser"));
+
+        // Dùng thời gian thực để chốt giờ kết thúc
+        targetEndTime = Date.now() + (timeRemaining * 1000);
+        lastBeepLap = Math.floor((totalSeconds - timeRemaining) / secPerLap);
+
+        document.getElementById('startBtn').innerText = "TẠM DỪNG";
+        document.getElementById('startBtn').className = "flex-1 bg-red-500 hover:bg-red-600 font-bold py-4 rounded-xl shadow-lg text-center transition active:scale-95";
+
+        updateMediaSession();
+        showTimerNotification();
+
+        timerId = setInterval(() => {
+          // Tính thời gian còn lại dựa trên đồng hồ hệ thống (Chống sai giờ khi tắt màn hình)
+          timeRemaining = Math.ceil((targetEndTime - Date.now()) / 1000);
+          
+          if (timeRemaining <= 0) {
+            timeRemaining = 0;
+            document.getElementById('timerDisplay').innerText = "HOÀN THÀNH";
+            playBeep();
+            resetTimer();
+            return;
+          }
+
+          document.getElementById('timerDisplay').innerText = formatTime(timeRemaining);
+          updateMediaSession(); // Cập nhật thời gian ra ngoài màn hình khóa
+          showTimerNotification(); // Cập nhật thông báo đếm ngược
+
+          // Phát tiếng BÍP khi xong 1 vòng
+          const timeElapsed = totalSeconds - timeRemaining;
+          const currentLapCompleted = Math.floor(timeElapsed / secPerLap);
+          
+          if (currentLapCompleted > lastBeepLap) {
+            playBeep();
+            lastBeepLap = currentLapCompleted;
+          }
+
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerId);
+      isRunning = false;
+      closeTimerNotification();
+      silentAudio.pause(); // Dừng nhạc ngầm
+      document.getElementById('startBtn').innerText = "BẮT ĐẦU CHẠY";
+      document.getElementById('startBtn').className = "flex-1 bg-emerald-500 hover:bg-emerald-600 font-bold py-4 rounded-xl shadow-lg text-center transition active:scale-95";
+      calculateStats();
+    }
+
+    updateLocationInfo();
+  </script>
+</body>
+</html>
